@@ -1,58 +1,92 @@
-import { DEFAULT_DELIMITER, ESCAPE_CHARACTER } from "../common/Printable";
+import { DEFAULT_DELIMITER } from "../common/Printable";
 import { Name } from "./Name";
 
 export class StringName implements Name {
 
     protected delimiter: string = DEFAULT_DELIMITER;
     protected name: string = "";
-    protected noComponents: number = 0;
 
     constructor(source: string, delimiter?: string) {
-        throw new Error("needs implementation or deletion");
+        this.delimiter = delimiter ?? DEFAULT_DELIMITER;
+        this.name = source;
+    }
+
+    private split(): string[] {
+        if (this.name === "") return [];
+        return this.name.split(this.delimiter);
+    }
+
+    private join(parts: string[]): void {
+        this.name = parts.join(this.delimiter);
     }
 
     public asString(delimiter: string = this.delimiter): string {
-        throw new Error("needs implementation or deletion");
+        return this.split().join(delimiter);
     }
 
     public asDataString(): string {
-        throw new Error("needs implementation or deletion");
+        return this.asString(this.delimiter);
     }
 
     public getDelimiterCharacter(): string {
-        throw new Error("needs implementation or deletion");
+        return this.delimiter;
     }
 
     public isEmpty(): boolean {
-        throw new Error("needs implementation or deletion");
+        return this.name.length === 0;
     }
 
     public getNoComponents(): number {
-        throw new Error("needs implementation or deletion");
+        return this.split().length;
     }
 
-    public getComponent(x: number): string {
-        throw new Error("needs implementation or deletion");
+    public getComponent(i: number): string {
+        const parts = this.split();
+        if (i < 0 || i >= parts.length) {
+            throw new RangeError("index out of bounds");
+        }
+        return parts[i];
     }
 
-    public setComponent(n: number, c: string): void {
-        throw new Error("needs implementation or deletion");
+    public setComponent(i: number, c: string): void {
+        const parts = this.split();
+        if (i < 0 || i >= parts.length) {
+            throw new RangeError("index out of bounds");
+        }
+        parts[i] = c;
+        this.join(parts);
     }
 
-    public insert(n: number, c: string): void {
-        throw new Error("needs implementation or deletion");
+    public insert(i: number, c: string): void {
+        const parts = this.split();
+        if (i < 0 || i > parts.length) {
+            throw new RangeError("index out of bounds");
+        }
+        parts.splice(i, 0, c);
+        this.join(parts);
     }
 
     public append(c: string): void {
-        throw new Error("needs implementation or deletion");
+        const parts = this.split();
+        parts.push(c);
+        this.join(parts);
     }
 
-    public remove(n: number): void {
-        throw new Error("needs implementation or deletion");
+    public remove(i: number): void {
+        const parts = this.split();
+        if (i < 0 || i >= parts.length) {
+            throw new RangeError("index out of bounds");
+        }
+        parts.splice(i, 1);
+        this.join(parts);
     }
 
     public concat(other: Name): void {
-        throw new Error("needs implementation or deletion");
-    }
+        const own = this.split();
+        const otherParts = other
+            .asString(other.getDelimiterCharacter())
+            .split(other.getDelimiterCharacter());
 
+        this.join([...own, ...otherParts]);
+    }
 }
