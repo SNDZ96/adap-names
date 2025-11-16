@@ -1,3 +1,4 @@
+// B03 finished on 2025-11-16
 import { Equality } from "../common/Equality";
 import { Cloneable } from "../common/Cloneable";
 
@@ -20,3 +21,4 @@ export interface Coordinate extends Equality {
     calcGreatCircleDistance(other: Coordinate): number;
 
 }
+

@@ -1,69 +1,45 @@
-import { DEFAULT_DELIMITER, ESCAPE_CHARACTER } from "../common/Printable";
-import { Name } from "./Name";
 import { AbstractName } from "./AbstractName";
 
-export class StringArrayName extends AbstractName {
+/**
+ * Diese Klasse speichert einen Namen als einzelnen String.
+ * Beispiel: "a.b.c"
+ * 
+ * Die Logik für Komponentenbearbeitung kommt aus AbstractName.
+ * Diese Klasse muss nur wissen:
+ *  - wie man einen String in parts zerlegt
+ *  - wie man parts wieder zu einem String zusammenfügt
+ */
+export class StringName extends AbstractName {
 
-    protected components: string[] = [];
+    /** Der komplette Name als ein einzelner String. */
+    protected value: string = "";
 
-    constructor(source: string[], delimiter?: string) {
-        super();
-        throw new Error("needs implementation or deletion");
+    constructor(source: string = "", delimiter?: string) {
+        super(delimiter);
+        this.value = source;
     }
 
-    public clone(): Name {
-        throw new Error("needs implementation or deletion");
+    /**
+     * Zerlegt den String in seine Komponenten.
+     * Wenn der Name leer ist, geben wir ein leeres Array zurück.
+     */
+    protected getParts(): string[] {
+        if (this.value === "") return [];
+        return this.value.split(this.delimiter);
     }
 
-    public asString(delimiter: string = this.delimiter): string {
-        throw new Error("needs implementation or deletion");
+    /**
+     * Fügt die Komponenten wieder zu einem String zusammen.
+     */
+    protected setParts(parts: string[]): void {
+        this.value = parts.join(this.delimiter);
     }
 
-    public asDataString(): string {
-        throw new Error("needs implementation or deletion");
-    }
-
-    public isEqual(other: Name): boolean {
-        throw new Error("needs implementation or deletion");
-    }
-
-    public getHashCode(): number {
-        throw new Error("needs implementation or deletion");
-    }
-
-    public isEmpty(): boolean {
-        throw new Error("needs implementation or deletion");
-    }
-
-    public getDelimiterCharacter(): string {
-        throw new Error("needs implementation or deletion");
-    }
-
-    public getNoComponents(): number {
-        throw new Error("needs implementation or deletion");
-    }
-
-    public getComponent(i: number): string {
-        throw new Error("needs implementation or deletion");
-    }
-
-    public setComponent(i: number, c: string) {
-        throw new Error("needs implementation or deletion");
-    }
-
-    public insert(i: number, c: string) {
-        throw new Error("needs implementation or deletion");
-    }
-
-    public append(c: string) {
-        throw new Error("needs implementation or deletion");
-    }
-
-    public remove(i: number) {
-        throw new Error("needs implementation or deletion");
-    }
-
-    public concat(other: Name): void {
-        throw new Error("needs implementation or deletion");
+    /**
+     * Klont dieses Objekt.
+     * Wichtig für das Homework: Rückgabetyp bleibt StringName.
+     */
+    public clone(): StringName {
+        return new StringName(this.value, this.delimiter);
     }
 }
