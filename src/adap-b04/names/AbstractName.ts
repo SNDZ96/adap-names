@@ -1,57 +1,76 @@
-import { DEFAULT_DELIMITER, ESCAPE_CHARACTER } from "../common/Printable";
+import { DEFAULT_DELIMITER } from "../common/Printable";
 import { Name } from "./Name";
+import { IllegalArgumentException } from "../common/IllegalArgumentException";
+import { InvalidStateException } from "../common/InvalidStateException";
+import { MethodFailedException } from "../common/MethodFailedException";
 
 export abstract class AbstractName implements Name {
 
     protected delimiter: string = DEFAULT_DELIMITER;
 
     constructor(delimiter: string = DEFAULT_DELIMITER) {
-        throw new Error("needs implementation or deletion");
+        this.delimiter = delimiter;
     }
 
-    public clone(): Name {
-        throw new Error("needs implementation or deletion");
+    // Helper ---------------------
+
+    protected require(cond: boolean, Exc: any) {
+        if (!cond) throw new Exc();
     }
+
+    protected ensure(cond: boolean, Exc: any) {
+        if (!cond) throw new Exc();
+    }
+
+    protected checkIndex(i: number) {
+        this.require(i >= 0 && i < this.getNoComponents(), IllegalArgumentException);
+    }
+
+    protected checkComponent(c: string) {
+        this.require(typeof c === "string", IllegalArgumentException);
+        this.require(!c.includes(this.delimiter), IllegalArgumentException);
+    }
+
+    // Interface basics --------------
+
+    abstract getNoComponents(): number;
+    abstract getComponent(i: number): string;
+    abstract setComponent(i: number, c: string): void;
+    abstract insert(i: number, c: string): void;
+    abstract append(c: string): void;
+    abstract remove(i: number): void;
+
+    public abstract clone(): Name;
 
     public asString(delimiter: string = this.delimiter): string {
-        throw new Error("needs implementation or deletion");
+        return this.asDataString();
     }
+
+    public abstract asDataString(): string;
 
     public toString(): string {
         return this.asDataString();
     }
 
-    public asDataString(): string {
-        throw new Error("needs implementation or deletion");
-    }
-
     public isEqual(other: Name): boolean {
-        throw new Error("needs implementation or deletion");
+        return this.asDataString() === other.asDataString();
     }
 
     public getHashCode(): number {
-        throw new Error("needs implementation or deletion");
+        return this.asDataString().length;
     }
 
     public isEmpty(): boolean {
-        throw new Error("needs implementation or deletion");
+        return this.getNoComponents() === 0;
     }
 
     public getDelimiterCharacter(): string {
-        throw new Error("needs implementation or deletion");
+        return this.delimiter;
     }
-
-    abstract getNoComponents(): number;
-
-    abstract getComponent(i: number): string;
-    abstract setComponent(i: number, c: string): void;
-
-    abstract insert(i: number, c: string): void;
-    abstract append(c: string): void;
-    abstract remove(i: number): void;
 
     public concat(other: Name): void {
-        throw new Error("needs implementation or deletion");
+        for (let i = 0; i < other.getNoComponents(); i++) {
+            this.append(other.getComponent(i));
+        }
     }
-
 }

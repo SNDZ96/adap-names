@@ -4,14 +4,8 @@ import { Directory } from "./Directory";
 
 export class RootNode extends Directory {
 
-    protected static ROOT_NODE: RootNode = new RootNode();
-
-    public static getRootNode() {
-        return this.ROOT_NODE;
-    }
-
     constructor() {
-        super("", new Object as Directory);
+        super("", null as any);
     }
 
     protected initialize(pn: Directory): void {
@@ -19,15 +13,14 @@ export class RootNode extends Directory {
     }
 
     public getFullName(): Name {
-        return new StringName("", '/');
+        return new StringName("", "/");
     }
 
     public move(to: Directory): void {
-        // null operation
+        // RootNode bleibt fix
     }
 
     protected doSetBaseName(bn: string): void {
-        // null operation
+        // Root hat keinen Namen
     }
-
 }

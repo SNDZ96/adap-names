@@ -1,45 +1,44 @@
 import { AbstractName } from "./AbstractName";
 
-/**
- * Diese Klasse speichert einen Namen als einzelnen String.
- * Beispiel: "a.b.c"
- * 
- * Die Logik für Komponentenbearbeitung kommt aus AbstractName.
- * Diese Klasse muss nur wissen:
- *  - wie man einen String in parts zerlegt
- *  - wie man parts wieder zu einem String zusammenfügt
- */
-export class StringName extends AbstractName {
+// Name wird hier als Array gespeichert.
+// Die Arbeit machen die do*-Methoden.
 
-    /** Der komplette Name als ein einzelner String. */
-    protected value: string = "";
+export class StringArrayName extends AbstractName {
 
-    constructor(source: string = "", delimiter?: string) {
+    private parts: string[] = [];
+
+    constructor(source: string[] = [], delimiter: string = ".") {
         super(delimiter);
-        this.value = source;
+        this.parts = [...source];
     }
 
-    /**
-     * Zerlegt den String in seine Komponenten.
-     * Wenn der Name leer ist, geben wir ein leeres Array zurück.
-     */
-    protected getParts(): string[] {
-        if (this.value === "") return [];
-        return this.value.split(this.delimiter);
+    // Primitive Methoden
+
+    protected doGetNoComponents(): number {
+        return this.parts.length;
     }
 
-    /**
-     * Fügt die Komponenten wieder zu einem String zusammen.
-     */
-    protected setParts(parts: string[]): void {
-        this.value = parts.join(this.delimiter);
+    protected doGetComponent(i: number): string {
+        return this.parts[i];
     }
 
-    /**
-     * Klont dieses Objekt.
-     * Wichtig für das Homework: Rückgabetyp bleibt StringName.
-     */
-    public clone(): StringName {
-        return new StringName(this.value, this.delimiter);
+    protected doSetComponent(i: number, c: string): void {
+        this.parts[i] = c;
+    }
+
+    protected doInsert(i: number, c: string): void {
+        this.parts.splice(i, 0, c);
+    }
+
+    protected doAppend(c: string): void {
+        this.parts.push(c);
+    }
+
+    protected doRemove(i: number): void {
+        this.parts.splice(i, 1);
+    }
+
+    public clone(): StringArrayName {
+        return new StringArrayName([...this.parts], this.delimiter);
     }
 }

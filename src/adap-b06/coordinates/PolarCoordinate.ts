@@ -1,75 +1,40 @@
-import { Coordinate } from "./Coordinate";
 import { AbstractCoordinate } from "./AbstractCoordinate";
+import { Coordinate } from "./Coordinate";
 
 export class PolarCoordinate extends AbstractCoordinate {
 
-    private r: number = 0;
-    private phi: number = 0;
+    private readonly r: number;
+    private readonly phi: number;
 
-    constructor(r?: number, phi?: number) {
-        super();
+    constructor(r: number, phi: number) {
+        const x = r * Math.cos(phi);
+        const y = r * Math.sin(phi);
+        super(x, y);
 
-        this.initialize(r, phi);
+        this.r = r;
+        this.phi = phi;
     }
 
-    protected initialize(r?: number, phi?: number): void {
-        if (r != undefined) {
-            this.r = r;
-        }
+    // ----- Required by B06 tests -----
 
-        if (phi != undefined) {
-            this.phi = phi;
-        }
-    }
-
-    protected doCreate(r: number, phi: number): Coordinate {
-        return new PolarCoordinate(r, phi);
-    }
-
-    public asDataString(): string {
-        return this.doGetR() + '#' + this.doGetPhi();
-    }
-
-    public getOrigin(): Coordinate {
-        return new PolarCoordinate(0, 0);
-    }
-    
-    protected doGetX(): number {
-        return this.doGetR() * Math.cos(this.doGetPhi());
-    }
-    
-    protected doSetX(x: number): Coordinate {
-        let y: number = this.doGetR() * Math.cos(this.doGetPhi());
-        let newR: number = Math.hypot(x, y);
-        let newPhi: number = Math.atan2(y, x);
-        return new PolarCoordinate(newR, newPhi);
-    }
-    
-    protected doGetY(): number {
-        return this.doGetR() * Math.sin(this.doGetPhi());
-    }
-
-    protected doSetY(y: number): Coordinate {
-        let x: number = this.doGetR() * Math.sin(this.doGetPhi());
-        let newR: number = Math.hypot(x, y);
-        let newPhi: number = Math.atan2(y, x);
-        return new PolarCoordinate(newR, newPhi);    
-    }
-
-    protected doGetR(): number {
-        return this.r;
-    }
-
-    protected doSetR(r: number): Coordinate {
+    public setR(r: number): Coordinate {
         return new PolarCoordinate(r, this.phi);
     }
 
-    protected doGetPhi(): number {
-        return this.phi;
-    }
-   
-    protected doSetPhi(phi: number): Coordinate {
-        return new PolarCoordinate(this.r, phi);   
+    public setA(a: number): Coordinate {
+        // synonym zu setPhi(a)
+        return new PolarCoordinate(this.r, a);
     }
 
+    public setPhi(phi: number): Coordinate {
+        return new PolarCoordinate(this.r, phi);
+    }
+
+    // ----- Value-type XY conversion -----
+
+    public doSetXY(x: number, y: number): Coordinate {
+        const r = Math.sqrt(x * x + y * y);
+        const phi = Math.atan2(y, x);
+        return new PolarCoordinate(r, phi);
+    }
 }

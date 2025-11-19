@@ -5,7 +5,7 @@ import { MethodFailedException } from "../common/MethodFailedException";
 enum FileState {
     OPEN,
     CLOSED,
-    DELETED        
+    DELETED
 };
 
 export class File extends Node {
@@ -17,21 +17,35 @@ export class File extends Node {
     }
 
     public open(): void {
-        // do something
+        if (this.state === FileState.DELETED) {
+            throw new MethodFailedException("Cannot open deleted file.");
+        }
+        this.state = FileState.OPEN;
+    }
+
+    public close(): void {
+        if (this.state === FileState.DELETED) {
+            throw new MethodFailedException("Cannot close deleted file.");
+        }
+        this.state = FileState.CLOSED;
     }
 
     public read(noBytes: number): Int8Array {
-        let result: Int8Array = new Int8Array(noBytes);
-        // do something
+        if (this.state !== FileState.OPEN) {
+            throw new MethodFailedException("File must be open before reading.");
+        }
+        
+        const result = new Int8Array(noBytes);
 
-        let tries: number = 0;
-        for (let i: number = 0; i < noBytes; i++) {
+        for (let i = 0; i < noBytes; i++) {
             try {
                 result[i] = this.readNextByte();
-            } catch(ex) {
-                tries++;
+            } catch (ex) {
                 if (ex instanceof MethodFailedException) {
-                    // Oh no! What @todo?!
+                    // B05 expects: fill failed reads with -1
+                    result[i] = -1;
+                } else {
+                    throw ex;
                 }
             }
         }
@@ -40,15 +54,12 @@ export class File extends Node {
     }
 
     protected readNextByte(): number {
-        return 0; // @todo
-    }
-
-    public close(): void {
-        // do something
+        // minimal version for B05 – always succeeds returning dummy data
+        // B06 will override this
+        return 1;
     }
 
     protected doGetFileState(): FileState {
         return this.state;
     }
-
 }

@@ -8,12 +8,12 @@ export class BuggyFile extends File {
     }
 
     /**
-     * Fault injection for homework
-     * @returns base name, here always ""
+     * Fault injection for homework.
+     * Rückgabe ist immer "", damit ein kaputter Zustand entsteht.
      */
     protected doGetBaseName(): string {
+        // absichtlich fehlerhaft: überschreibt den Namen immer mit ""
         this.baseName = "";
         return super.doGetBaseName();
     }
-
 }
