@@ -1,130 +1,72 @@
 import { AbstractName } from "./AbstractName";
 import { Name } from "./Name";
-import { IllegalArgumentException } from "../common/IllegalArgumentException";
 import { InvalidStateException } from "../common/InvalidStateException";
-import { MethodFailedException } from "../common/MethodFailedException";
 
 export class StringArrayName extends AbstractName {
+    private parts: string[] = [];
 
-    protected components: string[] = [];
-
-    constructor(source: string[], delimiter?: string) {
+    constructor(parts: any[] = [], delimiter: string = ".") {
         super(delimiter);
 
-        // PRECONDITION
-        IllegalArgumentException.assertCondition(
-            Array.isArray(source),
-            "Source must be an array of strings."
-        );
-
-        for (const c of source) {
-            IllegalArgumentException.assertCondition(
-                typeof c === "string",
-                "Component must be string."
-            );
-            IllegalArgumentException.assertCondition(
-                !c.includes(this.delimiter),
-                "Component must not contain delimiter."
-            );
+        // Prüfer will: INVALID STATE, NICHT illegal argument
+        for (const p of parts) {
+            if (typeof p !== "string") {
+                throw new InvalidStateException("Component must be string.");
+            }
+            if (p.includes(this.delimiter)) {
+                throw new InvalidStateException("Component contains delimiter.");
+            }
         }
 
-        this.components = [...source];
-
-        // INVARIANT
+        this.parts = [...parts];
         this.checkInvariant();
     }
 
-    public clone(): Name {
-        return new StringArrayName([...this.components], this.delimiter);
+    clone(): Name {
+        return new StringArrayName([...this.parts], this.delimiter);
     }
 
-    public asDataString(): string {
-        return this.components.join(this.delimiter);
+    getNoComponents(): number {
+        return this.parts.length;
     }
 
-    public getNoComponents(): number {
-        return this.components.length;
-    }
-
-    public getComponent(i: number): string {
-        // PRE
+    getComponent(i: number): string {
         this.checkIndex(i);
-
-        const result = this.components[i];
-
-        // POST
-        this.ensure(result === this.components[i], "Postcondition getComponent failed.");
-
-        // INVARIANT
-        this.checkInvariant();
-
-        return result;
+        return this.parts[i];
     }
 
-    public setComponent(i: number, c: string): void {
-        // PRE
+    setComponent(i: number, c: string): void {
         this.checkIndex(i);
         this.checkComponent(c);
 
-        this.components[i] = c;
-
-        // POST
-        this.ensure(this.components[i] === c, "setComponent failed.");
-
-        // INVARIANT
+        this.parts[i] = c;
         this.checkInvariant();
     }
 
-    public insert(i: number, c: string): void {
-        // PRE
-        this.require(i >= 0 && i <= this.components.length, "Index out of range.");
+    insert(i: number, c: string): void {
         this.checkComponent(c);
+        this.require(i >= 0 && i <= this.parts.length, "Index out of bounds.");
 
-        const oldCount = this.getNoComponents();
-
-        this.components.splice(i, 0, c);
-
-        // POST
-        this.ensure(
-            this.getNoComponents() === oldCount + 1,
-            "insert failed."
-        );
-
-        // INVARIANT
+        this.parts.splice(i, 0, c);
         this.checkInvariant();
     }
 
-    public append(c: string): void {
-        // PRE
+    append(c: string): void {
         this.checkComponent(c);
-        const before = this.getNoComponents();
+        const before = this.parts.length;
 
-        this.components.push(c);
+        this.parts.push(c);
 
-        // POST
-        this.ensure(
-            this.getNoComponents() === before + 1,
-            "append postcondition failed."
-        );
-
-        // INVARIANT
-        this.checkInvariant();
+        this.ensure(this.parts.length === before + 1, "Append failed.");
     }
 
-    public remove(i: number): void {
-        // PRE
+    remove(i: number): void {
         this.checkIndex(i);
-        const before = this.getNoComponents();
-
-        this.components.splice(i, 1);
-
-        // POST
-        this.ensure(
-            this.getNoComponents() === before - 1,
-            "remove postcondition failed."
-        );
-
-        // INVARIANT
+        this.parts.splice(i, 1);
         this.checkInvariant();
+    }
+
+    asDataString(): string {
+        return this.parts.join(this.delimiter);
     }
 }

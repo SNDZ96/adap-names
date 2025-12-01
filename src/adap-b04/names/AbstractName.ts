@@ -4,36 +4,30 @@ import { IllegalArgumentException } from "../common/IllegalArgumentException";
 import { InvalidStateException } from "../common/InvalidStateException";
 import { MethodFailedException } from "../common/MethodFailedException";
 
-
-
 export abstract class AbstractName implements Name {
-
     protected delimiter: string = DEFAULT_DELIMITER;
 
     constructor(delimiter: string = DEFAULT_DELIMITER) {
-        IllegalArgumentException.assertCondition(
-            typeof delimiter === "string" && delimiter.length > 0,
-            "Delimiter must be a non-empty string."
-        );
+        if (typeof delimiter !== "string" || delimiter.length === 0) {
+            throw new IllegalArgumentException("Delimiter must be non-empty string.");
+        }
+
         this.delimiter = delimiter;
 
-        this.checkInvariant();
+        // ❌ NICHT hier checkInvariant()
+        // Die Subklassen rufen checkInvariant() nach ihrer eigenen Initialisierung auf.
     }
 
-    // ------------------------------------------------------------
-    // Contract-Hilfsmethoden
-    // ------------------------------------------------------------
-
     protected require(cond: boolean, msg: string = ""): void {
-        IllegalArgumentException.assertCondition(cond, msg);
+        if (!cond) throw new IllegalArgumentException(msg);
     }
 
     protected ensure(cond: boolean, msg: string = ""): void {
-        MethodFailedException.assertCondition(cond, msg);
+        if (!cond) throw new MethodFailedException(msg);
     }
 
     protected invariant(cond: boolean, msg: string = ""): void {
-        InvalidStateException.assertCondition(cond, msg);
+        if (!cond) throw new InvalidStateException(msg);
     }
 
     protected checkIndex(i: number): void {
@@ -44,80 +38,50 @@ export abstract class AbstractName implements Name {
     }
 
     protected checkComponent(c: string): void {
-        this.require(typeof c === "string", "Component must be a string.");
-        this.require(!c.includes(this.delimiter), "Component must not contain delimiter.");
+        this.require(typeof c === "string", "Component must be string.");
+        this.require(!c.includes(this.delimiter), "Component contains delimiter.");
     }
 
     protected checkInvariant(): void {
-        this.invariant(this.getNoComponents() >= 0, "Invalid number of components.");
+        this.invariant(this.getNoComponents() >= 0, "Invalid internal state.");
     }
 
-    // ------------------------------------------------------------
-    // Öffentliche API – mutation IST erlaubt in B04
-    // ------------------------------------------------------------
+    abstract clone(): Name;
+    abstract getNoComponents(): number;
+    abstract getComponent(i: number): string;
+    abstract setComponent(i: number, c: string): void;
+    abstract insert(i: number, c: string): void;
+    abstract append(c: string): void;
+    abstract remove(i: number): void;
+    abstract asDataString(): string;
 
-    public abstract getNoComponents(): number;
-
-    public abstract getComponent(i: number): string;
-
-    public abstract setComponent(i: number, c: string): void;
-
-    public abstract insert(i: number, c: string): void;
-
-    public abstract append(c: string): void;
-
-    public abstract remove(i: number): void;
-
-    public abstract asDataString(): string;
-
-    public abstract clone(): Name;
-
-    // ------------------------------------------------------------
-    // Convenience API
-    // ------------------------------------------------------------
-
-    public asString(): string {
-        return this.asDataString();
-    }
-
-    public toString(): string {
-        return this.asDataString();
-    }
-
-    public isEqual(other: Name): boolean {
-        if (other == null) return false;
-        return this.asDataString() === other.asDataString();
-    }
-
-    public getHashCode(): number {
-        return this.asDataString().length;
-    }
-
-    public isEmpty(): boolean {
+    isEmpty(): boolean {
         return this.getNoComponents() === 0;
     }
 
-    public getDelimiterCharacter(): string {
+    isEqual(other: Name): boolean {
+        return other != null && this.asDataString() === other.asDataString();
+    }
+
+    getDelimiterCharacter(): string {
         return this.delimiter;
     }
 
-    /**
-     * concat IST IN B04 ERLAUBT zu mutieren.
-     */
-    public concat(other: Name): void {
-        this.require(other !== null, "Other name must not be null.");
-
-        const before = this.getNoComponents();
+    concat(other: Name): void {
+        this.require(other != null);
+        const old = this.getNoComponents();
 
         for (let i = 0; i < other.getNoComponents(); i++) {
             this.append(other.getComponent(i));
         }
 
         this.ensure(
-            this.getNoComponents() === before + other.getNoComponents(),
-            "Postcondition of concat failed."
+            this.getNoComponents() === old + other.getNoComponents(),
+            "Concat failed."
         );
+    }
 
-        this.checkInvariant();
+    toString(): string {
+        return this.asDataString();
     }
 }

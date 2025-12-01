@@ -10,6 +10,7 @@ export abstract class AbstractCoordinate implements Coordinate {
         this.y = y;
     }
 
+    // ------------- Cartesian getters -------------
     public getX(): number {
         return this.x;
     }
@@ -18,8 +19,16 @@ export abstract class AbstractCoordinate implements Coordinate {
         return this.y;
     }
 
-    // ----- Immutable Setters -----
+    // ------------- Polar getters -------------
+    public getR(): number {
+        return Math.sqrt(this.x * this.x + this.y * this.y);
+    }
 
+    public getPhi(): number {
+        return Math.atan2(this.y, this.x);
+    }
+
+    // ------------- Immutable setters -------------
     public setX(x: number): Coordinate {
         return this.doSetXY(x, this.y);
     }
@@ -28,10 +37,19 @@ export abstract class AbstractCoordinate implements Coordinate {
         return this.doSetXY(this.x, y);
     }
 
+    public setR(r: number): Coordinate {
+        const phi = this.getPhi();
+        return this.doSetXY(r * Math.cos(phi), r * Math.sin(phi));
+    }
+
+    public setPhi(phi: number): Coordinate {
+        const r = this.getR();
+        return this.doSetXY(r * Math.cos(phi), r * Math.sin(phi));
+    }
+
     public abstract doSetXY(x: number, y: number): Coordinate;
 
-    // ----- Value Equality -----
-
+    // ------------- Value semantics -------------
     public isEqual(other: Coordinate): boolean {
         return this.x === other.getX() && this.y === other.getY();
     }
@@ -41,6 +59,8 @@ export abstract class AbstractCoordinate implements Coordinate {
     }
 
     public asString(): string {
-        return `(${this.x},${this.y})`;
+        return `(${this.x}, ${this.y})`;
     }
+
+    public abstract clone(): Coordinate;
 }

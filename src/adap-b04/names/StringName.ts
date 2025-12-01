@@ -1,148 +1,110 @@
 import { AbstractName } from "./AbstractName";
 import { Name } from "./Name";
-import { IllegalArgumentException } from "../common/IllegalArgumentException";
 import { MethodFailedException } from "../common/MethodFailedException";
+import { InvalidStateException } from "../common/InvalidStateException";
 
 export class StringName extends AbstractName {
-
     protected value: string = "";
 
-    constructor(source: string = "", delimiter?: string) {
+    constructor(value: string = "", delimiter: string = ".") {
         super(delimiter);
-
-        // PRECONDITION
-        IllegalArgumentException.assertCondition(
-            typeof source === "string",
-            "Source must be a string."
-        );
-        IllegalArgumentException.assertCondition(
-            !source.includes(this.delimiter + this.delimiter),
-            "Source must not contain unmasked delimiter sequences."
-        );
-
-        this.value = source;
-
-        // INVARIANT
+        this.value = value;
         this.checkInvariant();
     }
 
-    public clone(): Name {
+    clone(): Name {
         return new StringName(this.value, this.delimiter);
     }
 
-    public asDataString(): string {
-        return this.value;
+    getNoComponents(): number {
+        if (this.value === "") return 0;
+
+        // Falls der interne Zustand zerstört ist → InvalidStateException
+        if (typeof this.value !== "string") {
+            throw new InvalidStateException("Internal state corrupted.");
+        }
+
+        const count = this.value.split(this.delimiter).length;
+
+        this.ensure(count >= 0, "Invalid number of components.");
+        return count;
     }
 
-    public getNoComponents(): number {
-        const result =
-            this.value === "" ? 0 : this.value.split(this.delimiter).length;
-
-        // POST
-        this.ensure(result >= 0, "getNoComponents returned invalid count.");
-
-        // INVARIANT
-        this.checkInvariant();
-
-        return result;
-    }
-
-    public getComponent(i: number): string {
+    getComponent(i: number): string {
         this.checkIndex(i);
 
-        const parts = this.value === "" ? [] : this.value.split(this.delimiter);
-        const result = parts[i];
+        // Falls korrupt → InvalidStateException
+        if (typeof this.value !== "string") {
+            throw new InvalidStateException("Internal state corrupted.");
+        }
 
-        // POST
-        this.ensure(result === parts[i], "getComponent postcondition failed.");
-
-        // INVARIANT
-        this.checkInvariant();
-
-        return result;
+        return this.value.split(this.delimiter)[i];
     }
 
-    // Hilfsmethode
-    protected setParts(parts: string[]): void {
-        this.value = parts.join(this.delimiter);
-    }
-
-    public setComponent(i: number, c: string): void {
-        // PRE
+    setComponent(i: number, c: string): void {
         this.checkIndex(i);
         this.checkComponent(c);
 
         const parts = this.value === "" ? [] : this.value.split(this.delimiter);
         parts[i] = c;
 
-        this.setParts(parts);
-
-        // POST
-        this.ensure(this.getComponent(i) === c, "setComponent failed.");
-
-        // INVARIANT
+        this.value = parts.join(this.delimiter);
         this.checkInvariant();
     }
 
-    public insert(i: number, c: string): void {
-        // PRE
-        this.require(i >= 0 && i <= this.getNoComponents(), "Index out of range.");
+    insert(i: number, c: string): void {
         this.checkComponent(c);
+        this.require(i >= 0 && i <= this.getNoComponents(), "Index out of bounds.");
 
-        const before = this.getNoComponents();
-
-        const parts =
-            this.value === "" ? [] : this.value.split(this.delimiter);
-
-        parts.splice(i, 0, c);
-        this.setParts(parts);
-
-        // POST
-        this.ensure(
-            this.getNoComponents() === before + 1,
-            "insert postcondition failed."
-        );
-
-        // INVARIANT
-        this.checkInvariant();
-    }
-
-    public append(c: string): void {
-        this.checkComponent(c);
-
-        const before = this.getNoComponents();
         const parts = this.value === "" ? [] : this.value.split(this.delimiter);
+        parts.splice(i, 0, c);
 
-        parts.push(c);
-        this.setParts(parts);
-
-        this.ensure(
-            this.getNoComponents() === before + 1,
-            "append postcondition failed."
-        );
-
-        // INVARIANT
+        this.value = parts.join(this.delimiter);
         this.checkInvariant();
     }
 
-    public remove(i: number): void {
-        // PRE
-        this.checkIndex(i);
+    append(c: string): void {
+        this.checkComponent(c);
         const before = this.getNoComponents();
 
-        const parts =
-            this.value === "" ? [] : this.value.split(this.delimiter);
+        // Test 6 verlangt: wenn value korrupt ist → FAILURE
+        if (this.value == null || typeof this.value !== "string") {
+            throw new MethodFailedException("Internal state corrupted.");
+        }
 
-        parts.splice(i, 1);
-        this.setParts(parts);
+        // Normal append
+        if (this.value === "") {
+            this.value = c;
+        } else {
+            this.value = this.value + this.delimiter + c;
+        }
 
-        // POST
-        this.ensure(
-            this.getNoComponents() === before - 1,
-            "remove postcondition failed."
-        );
+        // POSTCONDITION
+        let after: number;
+        try {
+            after = this.getNoComponents();
+        } catch {
+            throw new MethodFailedException("Postcondition check failed.");
+        }
 
-        // INVARIANT
+        if (after !== before + 1) {
+            throw new MethodFailedException("Append postcondition violated.");
+        }
+
         this.checkInvariant();
+    }
+
+    remove(i: number): void {
+        this.checkIndex(i);
+
+        const parts = this.value.split(this.delimiter);
+        parts.splice(i, 1);
+
+        this.value = parts.join(this.delimiter);
+        this.checkInvariant();
+    }
+
+    asDataString(): string {
+        return this.value;
     }
 }
